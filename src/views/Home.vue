@@ -4,7 +4,7 @@
       <!-- Title of the page -->
       <div class="d-flex flex-column">
         <div class="text-center my-4">
-          <h1>TD - N Lateration</h1>
+          <h1>TD - Fingerprint</h1>
         </div>
 
         <div class="d-flex flex-row flex-wrap justify-content-between ">
@@ -15,31 +15,8 @@
             <button @click="computePosition()" class="btn btn-primary">Compute pos</button>
             {{ computedPosition ? `Position computed !` : '' }}
           </div>
-          <!-- Checkboxes for controlling display 
-          <div class="d-flex  flex-row  my-4">
 
-
-            <div class="form-check me-4 px-2">
-              <input class="form-check-input" type="checkbox" id="opacityCheck" v-model="opacityEnabled">
-              <label class="form-check-label" for="opacityCheck">
-                Enable opacity
-              </label>
-            </div>
-
-            <div class="form-check me-4 px-2">
-              <input class="form-check-input" type="checkbox" id="binCheck" v-model="displayBin">
-              <label class="form-check-label" for="binCheck">
-                Display bin
-              </label>
-            </div>
-
-            <div class="form-check px-2">
-              <input class="form-check-input" type="checkbox" id="controllersCheck" v-model="displayControllers">
-              <label class="form-check-label" for="controllersCheck">
-                Display controllers
-              </label>
-            </div>
-          </div>-->
+            <span class="badge text-bg-light fw-medium mt-auto mb-auto">Status : {{ threeContainerComp?.hoveredObject?.rssi }}</span>
         </div>
       </div>
 
