@@ -1,8 +1,8 @@
 export { MobilePhone }
 
 class MobilePhone {
-    constructor(mobileRSSI, k, fingerprintDB) {
-        this.mobileRSSI = mobileRSSI;
+    constructor( k, fingerprintDB) {
+
         this.k = k;
         this.fingerprintDB = fingerprintDB;
     }
@@ -13,12 +13,12 @@ class MobilePhone {
     }
 
     // Find K-nearest reference points based on RSSI similarity
-    findKNearestNeighbors() {
+    findKNearestNeighbors(mobileRSSI) {
         let distances = this.fingerprintDB.map(fp => ({
             x: fp.x,
             y: fp.y,
             z: fp.z,
-            distance: this.computeDistance(fp.rssi, this.mobileRSSI)
+            distance: this.computeDistance(fp.rssi, mobileRSSI)
         }));
 
         // Sort by distance (ascending) and take K-nearest neighbors
@@ -26,8 +26,8 @@ class MobilePhone {
     }
 
     // Compute weighted position using barycentric interpolation
-    calculatePosition() {
-        let neighbors = this.findKNearestNeighbors();
+    calculatePosition(mobileRSSI) {
+        let neighbors = this.findKNearestNeighbors(mobileRSSI);
 
         // Compute inverse distance weights
         let weightSum = 0;

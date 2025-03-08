@@ -9,21 +9,29 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { MobilePhone } from '@/composables/mobilePhone';
 
+
+const props = defineProps({
+  mobileRSSI: {
+    type : Number,
+    required : true
+  }
+})
+
 const threeContainer = ref(null);
-let renderer, scene, camera, controls, labelRenderer, mobilePhone;
+let renderer, scene, camera, controls, labelRenderer, mobilePhone, phone;
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let intersectedObject = null;
 const spheres = [];
 
 
-const mobileRSSI = -32;
+
 const roomSize = 12;
 const pieceSize = 4;
 const hoveredObject = ref(null);
-const objectLabel = ref(null);
 
 
+const cameraPosition = {"x":1.1703017078740392,"y":9.868887758567128,"z":5.232665689849491};
 
 
 const handleResize = () => {
@@ -45,7 +53,7 @@ onMounted(() => {
   scene.add(light);
 
   camera = new THREE.PerspectiveCamera(75, threeContainer.value.clientWidth / threeContainer.value.clientHeight, 0.1, 1000);
-  camera.position.set(10, 15, 20);
+  camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight);
@@ -104,19 +112,22 @@ onMounted(() => {
 
   createLabel(`Width : ${roomSize}m`, { x: 0, y: 0, z: roomSize / 2 + 0.5 });
   createLabel(`Length : ${roomSize}m`, { x: roomSize / 2 + 0.5, y: 0, z: 0 });
+  createLabel(`Access point`, { x: -6 , y: 2, z: -6 });
 
+  const objectLabel =  createLabel(``, { x: 0, y: 0, z: 0 });
+  console.log(objectLabel)
   // Ajout des points rouges adaptés
   const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
   const sphereGeometry = new THREE.SphereGeometry(0.2, 16, 16);
   const adjustedPoints = [
         { x: -4, y: 1, z: -4, rssi: -30 }, // Center of (0, 0) to (4, 4)
-        { x: -4, y: 1, z: 0, rssi: -35 }, // Center of (4, 0) to (8, 4)
-        { x: 0, y: 1, z: -4, rssi: -40 }, // Center of (8, 0) to (12, 4)
-        { x: -4, y: 1, z: 4, rssi: -33 }, // Center of (0, 4) to (4, 8)
-        { x: 4, y: 1, z: -4, rssi: -36 }, // Center of (4, 4) to (8, 8)
-        { x: 0, y: 1, z: 0, rssi: -41 }, // Center of (8, 4) to (12, 8)
-        { x: 4, y: 1, z: 0, rssi: -37 }, // Center of (0, 8) to (4, 12)
-        { x: 0, y: 1, z: 4, rssi: -40 }, // Center of (4, 8) to (8, 12)
+        { x: 0, y: 1, z: -4, rssi: -35 }, // Center of (4, 0) to (8, 4)
+        { x: 4, y: 1, z: -4, rssi: -40 }, // Center of (8, 0) to (12, 4)
+        { x: -4, y: 1, z: 0, rssi: -33 }, // Center of (0, 4) to (4, 8)
+        { x: 0, y: 1, z: 0, rssi: -40 }, // Center of (4, 4) to (8, 8)
+        { x: 4, y: 1, z: 0, rssi: -42 }, // Center of (8, 4) to (12, 8)
+        { x: -4, y: 1, z: 4, rssi: -37 }, // Center of (0, 8) to (4, 12)
+        { x: 0, y: 1, z: 4, rssi: -41 }, // Center of (4, 8) to (8, 12)
         { x: 4, y: 1, z: 4, rssi: -44 }  // Center of (8, 8) to (12, 12)
   ];
 
@@ -149,25 +160,30 @@ onMounted(() => {
         if (intersectedObject) {
           intersectedObject.material.color.set(0xff0000);
           hoveredObject.value = null;
+          objectLabel.visible = false;
         }
         intersectedObject = intersects[0].object;
         intersectedObject.material.color.set(0x00ff00);
         hoveredObject.value = intersectedObject;
-        console.log(hoveredObject.value);
+        objectLabel.element.textContent = `RSSI : ${intersectedObject.rssi}`;
+        objectLabel.visible = true;
+        objectLabel.position.set(intersectedObject.position.x, intersectedObject.position.y, intersectedObject.position.z);
       }
     } else if (intersectedObject) {
       intersectedObject.material.color.set(0xff0000);
       intersectedObject = null;
+      objectLabel.visible = false;
+
       hoveredObject.value = null;
     }
   }
   
   // MOBILE PHONE PART 
+
+  mobilePhone = new MobilePhone(3, adjustedPoints);
   const phoneMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
   const phoneGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-  mobilePhone = new MobilePhone(mobileRSSI, 3, adjustedPoints);
-
-  console.log('FEEEEEEEEEEEUR : ', mobilePhone.calculatePosition())
+  phone = new THREE.Mesh(phoneGeometry, phoneMaterial);
 
   function animate() {
     requestAnimationFrame(animate);
@@ -179,6 +195,14 @@ onMounted(() => {
   animate();
 });
 
+const computePosition = () => {
+  if (!mobilePhone) return;
+  const position = mobilePhone.calculatePosition(props.mobileRSSI );
+  phone.position.set(position.x, 1, position.z);
+  scene.add(phone);
+
+}
+
 onUnmounted(() => {
   window.removeEventListener('mousemove', onMouseMove);
   window.removeEventListener('resize', handleResize);
@@ -186,6 +210,7 @@ onUnmounted(() => {
 });
 
 defineExpose({
+  computePosition,
   hoveredObject
 })
 </script>

@@ -11,12 +11,20 @@
 
 
           <div class="m-4 d-flex flex-row gap-2">
-            <button @click="resetCam()" class="btn btn-primary">Reset cam</button>
-            <button @click="computePosition()" class="btn btn-primary">Compute pos</button>
+            <input type="number" v-model="mobileRSSI" class="form-control mt-auto mb-auto" :placeholder="mobileRSSI" />
+            <button @click="computePosition()" class="btn btn-primary">Compute phone pos</button>
             {{ computedPosition ? `Position computed !` : '' }}
           </div>
 
-            <span class="badge text-bg-light fw-medium mt-auto mb-auto">Status : {{ threeContainerComp?.hoveredObject?.rssi }}</span>
+          <h3 class="mt-auto mb-auto">
+            <span v-if="threeContainerComp?.hoveredObject" class="badge text-bg-light fw-medium ">Coords : 
+              {{ threeContainerComp?.hoveredObject?.position.x != null ? ('x : '+ threeContainerComp?.hoveredObject?.position.x ) : ''}}
+              {{ threeContainerComp?.hoveredObject?.position.z != null ? ('z : '+ threeContainerComp?.hoveredObject?.position.z ) : ''}}
+            
+            
+            </span>
+          </h3>
+
         </div>
       </div>
 
@@ -24,7 +32,7 @@
       <!-- Three.js container, now takes the remaining height -->
       <div class="flex-grow-1 mb-4 px-3  position-relative">
 
-        <ThreeContainer ref="threeContainerComp" :opacity="opacityEnabled" :bin="displayBin"
+        <ThreeContainer ref="threeContainerComp" :opacity="opacityEnabled" :bin="displayBin" :mobileRSSI="mobileRSSI"
           :controllers="displayControllers" :openState="openState" />
       </div>
 
@@ -45,16 +53,15 @@ const displayBin = ref(true);
 const displayControllers = ref(true);
 const openState = ref(false);
 const computedPosition = ref(null);
+const mobileRSSI = ref(-32);
 
 const threeContainerComp = ref(null)
 
-const resetCam = () => {
-  if(threeContainerComp.value) threeContainerComp.value.resetCamera()
-} 
+
   
 const computePosition = () => {
-  if(threeContainerComp.value) computedPosition.value = threeContainerComp.value.computePosition()
-  console.log(threeContainerComp.value.computePosition())
+  if(threeContainerComp.value)
+  threeContainerComp.value.computePosition()
 } 
 
 </script>
